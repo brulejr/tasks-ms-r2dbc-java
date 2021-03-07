@@ -1,0 +1,7 @@
+rootProject.name = 'tasks-ms-r2dbc-java'
+
+sourceControl {
+    gitRepository(uri("https://github.com/brulejr/ms-core-java.git")) {
+        producesModule("io.jrb.labs:ms-core-java")
+    }
+}
