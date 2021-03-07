@@ -27,10 +27,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import io.jrb.labs.common.service.crud.CrudServiceSupport;
 import io.jrb.labs.tasksms.model.EntityType;
+import io.jrb.labs.tasksms.model.History;
+import io.jrb.labs.tasksms.model.HistoryType;
 import io.jrb.labs.tasksms.model.Task;
 import io.jrb.labs.tasksms.model.LookupValue;
 import io.jrb.labs.tasksms.model.LookupValueType;
 import io.jrb.labs.tasksms.model.Projection;
+import io.jrb.labs.tasksms.repository.HistoryRepository;
 import io.jrb.labs.tasksms.repository.TaskRepository;
 import io.jrb.labs.tasksms.repository.LookupValueRepository;
 import io.jrb.labs.tasksms.resource.TaskResource;
@@ -40,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,32 +53,32 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
 
     private final TaskRepository taskRepository;
     private final LookupValueRepository lookupValueRepository;
+    private final HistoryRepository historyRepository;
 
     public TaskServiceImpl(
             final TaskRepository taskRepository,
             final LookupValueRepository lookupValueRepository,
+            final HistoryRepository historyRepository,
             final ObjectMapper objectMapper
     ) {
         super(Task.class, taskRepository, objectMapper);
         this.taskRepository = taskRepository;
         this.lookupValueRepository = lookupValueRepository;
+        this.historyRepository = historyRepository;
     }
 
     @Override
     @Transactional
     public Mono<TaskResource> createTask(final TaskResource task) {
         return createEntity(Task.fromResource(task))
-                .flatMap(taskEntity -> {
-                    final long taskId = taskEntity.getId();
-                    return Mono.zip(
-                            Mono.just(taskEntity),
-                            createLookupValues(taskId, LookupValueType.GROUP, task.getGroups()),
-                            createLookupValues(taskId, LookupValueType.TAG, task.getTags())
-                    );
-                })
+                .zipWhen(taskEntity -> Mono.zip(
+                        createLookupValues(taskEntity.getId(), LookupValueType.GROUP, task.getGroups()),
+                        createLookupValues(taskEntity.getId(), LookupValueType.TAG, task.getTags()),
+                        createHistory(taskEntity.getId(), HistoryType.CREATED)
+                ))
                 .map(tuple -> TaskResource.fromEntity(tuple.getT1())
-                        .groups(tuple.getT2())
-                        .tags(tuple.getT3())
+                        .groups(tuple.getT2().getT1())
+                        .tags(tuple.getT2().getT1())
                         .build());
     }
 
@@ -84,7 +88,9 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
         return deleteEntity(taskGuid, taskEntity -> {
             final long taskId = taskEntity.getId();
             return lookupValueRepository.deleteByEntityTypeAndEntityId(EntityType.TASK, taskId)
-                    .then(taskRepository.deleteById(taskId));
+                    .then(taskRepository.deleteById(taskId))
+                    .then(createHistory(taskId, HistoryType.DELETED))
+                    .then();
         });
     }
 
@@ -92,12 +98,13 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
     @Transactional
     public Mono<TaskResource> findTaskByGuid(final UUID taskGuid, final Projection projection) {
         return findEntityByGuid(taskGuid)
-                .zipWhen(task -> (projection == Projection.DEEP)
-                        ? findTaskValueList(task.getId())
-                        : Mono.just(List.<LookupValue>of()))
+                .zipWhen(task -> Mono.zip(
+                        findTaskValueList(task.getId(), projection),
+                        findTaskHistory(task.getId(), projection)
+                ))
                 .map(tuple -> {
                     final TaskResource.TaskResourceBuilder builder = TaskResource.fromEntity(tuple.getT1());
-                    tuple.getT2().forEach(lookupValue -> {
+                    tuple.getT2().getT1().forEach(lookupValue -> {
                         final String value = lookupValue.getValue();
                         switch (lookupValue.getValueType()) {
                             case GROUP:
@@ -126,7 +133,25 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
             final TaskResource resource = TaskResource.fromEntity(entity).build();
             final TaskResource updatedResource = applyPatch(guid, patch, resource, TaskResource.class);
             return Task.fromResource(updatedResource);
-        }).flatMap(entity -> findTaskByGuid(entity.getGuid(), Projection.DETAILS));
+        }).flatMap(taskEntity -> {
+            final long taskId = taskEntity.getId();
+            return createHistory(taskId, HistoryType.UPDATED)
+                    .then(findTaskByGuid(guid, Projection.DETAILS));
+        });
+    }
+
+    private Mono<Long> createHistory(
+            final long taskId,
+            final HistoryType type
+    ) {
+        return Mono.just(type)
+                .map(value -> History.builder()
+                        .entityType(EntityType.TASK)
+                        .entityId(taskId)
+                        .eventType(type)
+                        .build())
+                .flatMap(historyRepository::save)
+                .map(History::getId);
     }
 
     private Mono<List<String>> createLookupValues(
@@ -146,9 +171,22 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
                 .collectList();
     }
 
-    private Mono<List<LookupValue>> findTaskValueList(final long taskId) {
-        return lookupValueRepository.findByEntityTypeAndEntityId(EntityType.TASK, taskId)
-                .collectList();
+    private Mono<List<LookupValue>> findTaskValueList(final long entityId, final Projection projection) {
+        if (projection == Projection.DEEP) {
+            return lookupValueRepository.findByEntityTypeAndEntityId(EntityType.TASK, entityId)
+                    .collectList();
+        } else {
+            return Mono.just(Collections.emptyList());
+        }
+    }
+
+    private Mono<List<History>> findTaskHistory(final long entityId, final Projection projection) {
+        if (projection == Projection.DEEP) {
+            return historyRepository.findByEntityTypeAndEntityId(EntityType.TASK, entityId)
+                    .collectList();
+        } else {
+            return Mono.just(Collections.emptyList());
+        }
     }
 
 }

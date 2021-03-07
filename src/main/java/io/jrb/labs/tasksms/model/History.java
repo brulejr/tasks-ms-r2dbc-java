@@ -23,9 +23,6 @@
  */
 package io.jrb.labs.tasksms.model;
 
-import io.jrb.labs.common.entity.Entity;
-import io.jrb.labs.common.entity.EntityBuilder;
-import io.jrb.labs.tasksms.resource.TaskResource;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,7 +35,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -46,42 +42,26 @@ import java.util.UUID;
 @Setter(value = AccessLevel.PROTECTED)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
-@Table(value = "t_task")
-public class Task implements Entity {
+@Table(value = "t_history")
+public class History {
 
     @Id
-    @Column(value = "task_id")
-    Long id;
+    @Column(value = "history_id")
+    long id;
 
-    @Column(value = "guid")
-    UUID guid;
+    @Column(value = "entity_type")
+    EntityType entityType;
 
-    @Column(value = "name")
-    String name;
+    @Column(value = "entity_id")
+    long entityId;
 
-    @Column(value = "description")
-    String description;
+    @Column(value = "event_type")
+    HistoryType eventType;
 
     @Column(value = "created_by")
     String createdBy;
 
     @Column(value = "created_on")
     Instant createdOn;
-
-    @Column(value = "modified_by")
-    String modifiedBy;
-
-    @Column(value = "modified_on")
-    Instant modifiedOn;
-
-    public static TaskBuilder fromResource(final TaskResource taskResource) {
-        return Task.builder()
-                .guid(taskResource.getGuid())
-                .name(taskResource.getName())
-                .description(taskResource.getDescription());
-    }
-
-    public static class TaskBuilder implements EntityBuilder<Task, TaskBuilder> {
-    }
 
 }
