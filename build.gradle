@@ -1,7 +1,9 @@
 plugins {
 	id 'org.springframework.boot' version '2.4.3'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'com.google.cloud.tools.jib' version '1.8.0'
 	id 'java'
+	id 'jacoco'
 }
 
 group = 'io.jrb.labs'
@@ -14,6 +16,12 @@ repositories {
 
 ext {
 	set('springCloudVersion', "2020.0.1")
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
 }
 
 dependencies {
@@ -44,4 +52,18 @@ dependencyManagement {
 
 test {
 	useJUnitPlatform()
+	jacoco {
+		destinationFile = file("$buildDir/jacoco/jacoco.exec")
+	}
+}
+
+jib {
+	to {
+		image "brulejr/tasks-ms-r2dbc-java"
+		auth {
+			// retrieve from Jenkins
+			username "${System.env.DOCKERHUB_CREDENTIALS_USR}"
+			password "${System.env.DOCKERHUB_CREDENTIALS_PSW}"
+		}
+	}
 }
