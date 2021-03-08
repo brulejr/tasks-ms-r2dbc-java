@@ -23,13 +23,16 @@
  */
 package io.jrb.labs.tasksms.config;
 
+import io.jrb.labs.common.h2.H2ConsoleServer;
 import io.jrb.labs.tasksms.service.TaskService;
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
@@ -68,6 +71,12 @@ public class DatabaseJavaConfig extends AbstractR2dbcConfiguration {
     @Bean
     public DemoInitializer demoInitializer(final TaskService taskService) {
         return new DemoInitializer(taskService);
+    }
+
+    @Bean
+    @Profile("local")
+    public H2ConsoleServer h2ConsoleServer(@Value("${h2.console.port}") final int consolePort) {
+        return new H2ConsoleServer(consolePort);
     }
 
 }
