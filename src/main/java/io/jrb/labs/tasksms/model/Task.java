@@ -50,7 +50,7 @@ import java.util.UUID;
 public class Task implements Entity {
 
     @Id
-    @Column(value = "task_id")
+    @Column(value = "ta_id")
     Long id;
 
     @Column(value = "guid")

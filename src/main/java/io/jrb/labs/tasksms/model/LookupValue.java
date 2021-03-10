@@ -44,7 +44,7 @@ import org.springframework.data.relational.core.mapping.Table;
 public class LookupValue {
 
     @Id
-    @Column(value = "lkval_id")
+    @Column(value = "lv_id")
     long id;
 
     @Column(value = "entity_type")

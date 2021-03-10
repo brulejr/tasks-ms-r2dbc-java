@@ -46,7 +46,7 @@ import java.time.Instant;
 public class History {
 
     @Id
-    @Column(value = "history_id")
+    @Column(value = "hi_id")
     long id;
 
     @Column(value = "entity_type")
