@@ -46,6 +46,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -74,7 +75,7 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
                 .zipWhen(taskEntity -> Mono.zip(
                         createLookupValues(taskEntity.getId(), LookupValueType.GROUP, task.getGroups()),
                         createLookupValues(taskEntity.getId(), LookupValueType.TAG, task.getTags()),
-                        createHistory(taskEntity.getId(), HistoryType.CREATED)
+                        createHistory(taskEntity.getId(), HistoryType.CREATED, builder -> {})
                 ))
                 .map(tuple -> TaskResource.fromEntity(tuple.getT1())
                         .groups(tuple.getT2().getT1())
@@ -89,7 +90,7 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
             final long taskId = taskEntity.getId();
             return lookupValueRepository.deleteByEntityTypeAndEntityId(EntityType.TASK, taskId)
                     .then(taskRepository.deleteById(taskId))
-                    .then(createHistory(taskId, HistoryType.DELETED))
+                    .then(createHistory(taskId, HistoryType.DELETED, builder -> {}))
                     .then();
         });
     }
@@ -135,21 +136,25 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
             return Task.fromResource(updatedResource);
         }).flatMap(taskEntity -> {
             final long taskId = taskEntity.getId();
-            return createHistory(taskId, HistoryType.UPDATED)
+            return createHistory(taskId, HistoryType.UPDATED, builder -> {})
                     .then(findTaskByGuid(guid, Projection.DETAILS));
         });
     }
 
     private Mono<Long> createHistory(
             final long taskId,
-            final HistoryType type
+            final HistoryType type,
+            final Consumer<History.HistoryBuilder> callback
     ) {
         return Mono.just(type)
-                .map(value -> History.builder()
+                .map(value -> {
+                    final History.HistoryBuilder builder = History.builder()
                         .entityType(EntityType.TASK)
                         .entityId(taskId)
-                        .eventType(type)
-                        .build())
+                        .eventType(type);
+                    callback.accept(builder);
+                    return builder.build();
+                })
                 .flatMap(historyRepository::save)
                 .map(History::getId);
     }
