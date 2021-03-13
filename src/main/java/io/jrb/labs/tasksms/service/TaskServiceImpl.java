@@ -75,9 +75,7 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
                 .zipWhen(taskEntity -> Mono.zip(
                         createLookupValues(taskEntity.getId(), LookupValueType.GROUP, task.getGroups()),
                         createLookupValues(taskEntity.getId(), LookupValueType.TAG, task.getTags()),
-                        createHistory(taskEntity.getId(), HistoryType.CREATED, builder -> {
-                            builder.detail("task", taskEntity);
-                        })
+                        createHistory(taskEntity.getId(), HistoryType.CREATED, builder -> {})
                 ))
                 .map(tuple -> TaskResource.fromEntity(tuple.getT1())
                         .groups(tuple.getT2().getT1())

@@ -23,7 +23,6 @@
  */
 package io.jrb.labs.tasksms.model;
 
-import io.jrb.labs.tasksms.repository.MapToJsonConverter;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,12 +30,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Singular;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import javax.persistence.Convert;
 import java.time.Instant;
 import java.util.Map;
 
@@ -68,7 +65,5 @@ public class History {
     @Column(value = "created_on")
     Instant createdOn;
 
-    @Singular
-    @Column(value = "details")
     Map<String, Object> details;
 }

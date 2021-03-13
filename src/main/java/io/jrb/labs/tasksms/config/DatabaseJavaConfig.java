@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import io.jrb.labs.common.h2.H2ConsoleServer;
-import io.jrb.labs.tasksms.repository.MapToJsonConverter;
 import io.jrb.labs.tasksms.service.TaskService;
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -69,7 +68,6 @@ public class DatabaseJavaConfig extends AbstractR2dbcConfiguration {
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
                 .findAndRegisterModules();
         return new R2dbcCustomConversions(getStoreConversions(), ImmutableList.builder()
-                .add(new MapToJsonConverter(objectMapper))
                 .build());
     }
 

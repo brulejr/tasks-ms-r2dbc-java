@@ -21,36 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.jrb.labs.tasksms.repository;
+package io.jrb.labs.tasksms.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.WritingConverter;
+import io.jrb.labs.common.rest.GlobalErrorHandler;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.Map;
+@Configuration
+public class WebJavaConfig {
 
-@Slf4j
-@WritingConverter
-public class MapToJsonConverter implements Converter<Map<String, Object>, String> {
-
-    private static final String EMPTY_STRING = "";
-
-    private final ObjectMapper objectMapper;
-
-    public MapToJsonConverter(final ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
-    @Override
-    public String convert(final Map<String, Object> source) {
-        try {
-            return objectMapper.writeValueAsString(source);
-        } catch (final JsonProcessingException e) {
-            log.error("Error occurred while serializing map to JSON: {}", source, e);
-        }
-        return EMPTY_STRING;
+    @Bean
+    public GlobalErrorHandler globalErrorHandler() {
+        return new GlobalErrorHandler();
     }
 
 }
