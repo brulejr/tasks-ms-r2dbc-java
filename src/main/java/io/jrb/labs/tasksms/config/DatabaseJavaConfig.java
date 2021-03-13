@@ -23,7 +23,12 @@
  */
 package io.jrb.labs.tasksms.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.ImmutableList;
 import io.jrb.labs.common.h2.H2ConsoleServer;
+import io.jrb.labs.tasksms.repository.MapToJsonConverter;
 import io.jrb.labs.tasksms.service.TaskService;
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -35,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
+import org.springframework.data.r2dbc.convert.R2dbcCustomConversions;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.r2dbc.connection.init.CompositeDatabasePopulator;
 import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
@@ -45,6 +51,7 @@ import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 public class DatabaseJavaConfig extends AbstractR2dbcConfiguration {
 
     @Bean
+    @Override
     public H2ConnectionFactory connectionFactory() {
         return new H2ConnectionFactory(
                 H2ConnectionConfiguration.builder()
@@ -52,6 +59,18 @@ public class DatabaseJavaConfig extends AbstractR2dbcConfiguration {
                         .username("sa")
                         .build()
         );
+    }
+
+    @Bean
+    @Override
+    public R2dbcCustomConversions r2dbcCustomConversions() {
+        final ObjectMapper objectMapper = new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .findAndRegisterModules();
+        return new R2dbcCustomConversions(getStoreConversions(), ImmutableList.builder()
+                .add(new MapToJsonConverter(objectMapper))
+                .build());
     }
 
     @Bean

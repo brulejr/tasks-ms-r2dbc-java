@@ -76,7 +76,7 @@ public class TaskServiceImpl extends CrudServiceSupport<Task, Task.TaskBuilder> 
                         createLookupValues(taskEntity.getId(), LookupValueType.GROUP, task.getGroups()),
                         createLookupValues(taskEntity.getId(), LookupValueType.TAG, task.getTags()),
                         createHistory(taskEntity.getId(), HistoryType.CREATED, builder -> {
-                            builder.details(taskEntity.toString());
+                            builder.detail("task", taskEntity);
                         })
                 ))
                 .map(tuple -> TaskResource.fromEntity(tuple.getT1())
