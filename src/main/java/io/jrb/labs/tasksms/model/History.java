@@ -64,4 +64,6 @@ public class History {
     @Column(value = "created_on")
     Instant createdOn;
 
+    @Column(value = "details")
+    String details;
 }

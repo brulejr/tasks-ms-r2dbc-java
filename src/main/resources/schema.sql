@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS t_history (
     entity_id NUMBER,
     event_type VARCHAR(64) NOT NULL,
     created_by VARCHAR(64) DEFAULT 'SYSTEM',
-    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    details CLOB
 );
 
 CREATE TABLE IF NOT EXISTS t_lookup_value (
