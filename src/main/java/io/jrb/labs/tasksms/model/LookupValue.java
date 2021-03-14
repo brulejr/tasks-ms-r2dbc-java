@@ -23,8 +23,6 @@
  */
 package io.jrb.labs.tasksms.model;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.annotation.Id;

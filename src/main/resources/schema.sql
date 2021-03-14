@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS t_history (
     entity_type VARCHAR(64) NOT NULL,
     entity_id NUMBER,
     event_type VARCHAR(64) NOT NULL,
-    created_by VARCHAR(64) DEFAULT 'SYSTEM',
     created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -20,9 +19,9 @@ CREATE TABLE IF NOT EXISTS t_task (
     guid UUID NOT NULL,
     name VARCHAR(64) NOT NULL,
     description VARCHAR(256),
-    created_by VARCHAR(64) DEFAULT 'SYSTEM',
-    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_by VARCHAR(64) DEFAULT 'SYSTEM',
-    modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_by VARCHAR(64),
+    created_on TIMESTAMP,
+    modified_by VARCHAR(64),
+    modified_on TIMESTAMP
 );
 

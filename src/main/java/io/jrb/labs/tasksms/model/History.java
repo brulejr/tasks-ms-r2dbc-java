@@ -23,8 +23,6 @@
  */
 package io.jrb.labs.tasksms.model;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.annotation.Id;
@@ -50,9 +48,6 @@ public class History {
 
     @Column(value = "event_type")
     HistoryType eventType;
-
-    @Column(value = "created_by")
-    String createdBy;
 
     @Column(value = "created_on")
     Instant createdOn;

@@ -28,7 +28,11 @@ import io.jrb.labs.common.entity.EntityBuilder;
 import io.jrb.labs.tasksms.resource.TaskResource;
 import lombok.Builder;
 import lombok.Value;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -53,15 +57,19 @@ public class Task implements Entity {
     @Column(value = "description")
     String description;
 
+    @CreatedBy
     @Column(value = "created_by")
     String createdBy;
 
+    @CreatedDate
     @Column(value = "created_on")
     Instant createdOn;
 
+    @LastModifiedBy
     @Column(value = "modified_by")
     String modifiedBy;
 
+    @LastModifiedDate
     @Column(value = "modified_on")
     Instant modifiedOn;
 
